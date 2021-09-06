@@ -10,14 +10,13 @@ const cryptoJs = require('crypto-js');
 
 const encryptData = (user) => {
     const newToken = crypto.randomBytes(32).toString('hex');
-    console.log(newToken);
     const cipherText = cryptoJs.AES.encrypt(JSON.stringify(user), newToken).toString();
     return {
         encryptedData: cipherText,
         newToken
     }
 }
-
+/*
 const decryptData = (token) => {
     var bytes = cryptoJs.AES.decrypt(token.encryptedData, token.newToken);
     var decryptedData = JSON.parse(bytes.toString(cryptoJs.enc.Utf8));
@@ -25,20 +24,20 @@ const decryptData = (token) => {
         decryptedData
     }
 }
+*/
 
 const verifyToken = [];
 const isVerify = (req, res, next) => {
-    console.log(verifyToken);
     const secret = req.body.secret;
-    console.log(verifyToken.includes(secret));
     if (!secret || !verifyToken.includes(secret)) {
         res.send({
             message: 'No Token'
         })
     } else {
-        var bytes = cryptoJs.AES.decrypt(token.encryptedData, token.newToken);
+        var bytes = cryptoJs.AES.decrypt(verifyToken[1], verifyToken[0]);
         var decryptedData = JSON.parse(bytes.toString(cryptoJs.enc.Utf8));
-        res.send({message: 'decryptedData:', decryptedData});
+        req.user = decryptedData;
+        console.log(req.user);
         next();
     }
 }
@@ -87,7 +86,7 @@ const isAuth = (req, res, next) => {
         });
     }
 };
-
+/*
 userRoute.post('/token', async (req, res) => {
     const refreshToken = req.body.refreshToken;
     console.log(refreshTokens);
@@ -117,7 +116,7 @@ userRoute.post('/token', async (req, res) => {
         });
     }
 });
-
+*/
 userRoute.post('/register', async (req, res) => {
     const validation = joi.object({
         name: joi.string().alphanum().min(2).max(25).trim(true).required().label('name not valid'),
@@ -222,9 +221,9 @@ userRoute.post('/login', async (req, res) => {
                     user,
                     token: encryptData(user),
                 }
-                verifyToken.push(response.token.newToken)
-                console.log(response.token)
-                console.log(decryptData(response.token));
+                verifyToken.push(response.token.newToken, response.token.encryptedData)
+                //console.log(response.token)
+                //console.log(decryptData(response.token));
                 res.send(response);
             } else {
                 return res.send({
@@ -241,7 +240,6 @@ userRoute.post('/login', async (req, res) => {
 
 
 userRoute.post('/profile/:id', isVerify, async (req, res) => {
-    console.log(req.user)
     const user = await User.findById(req.params.id);
     if (user) {
         res.send(user);
