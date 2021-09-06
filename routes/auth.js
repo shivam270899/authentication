@@ -5,50 +5,47 @@ const joi = require("joi");
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
-const {
-    generateKeyPairSync,
-    createSign,
-    createVerify
-} = require('crypto');
-const {
-    privateKey,
-    publicKey
-} = generateKeyPairSync('ec', {
-    namedCurve: 'sect239k1'
-});
+const cryptoJs = require('crypto-js');
 
-/*
+
 const encryptData = (user) => {
-    const token = crypto.randomBytes(48).toString('hex');
-    const createdAt = new Date;
-    const sign = createSign('SHA256');
-    sign.write('xyz');
-    sign.end();
-    const signature = sign.sign(privateKey, 'hex');
-    const response = {
-        name: user.name,
-        email: user.email,
-        token,
-        createdAt,
-        signature
+    const newToken = crypto.randomBytes(32).toString('hex');
+    console.log(newToken);
+    const cipherText = cryptoJs.AES.encrypt(JSON.stringify(user), newToken).toString();
+    return {
+        encryptedData: cipherText,
+        newToken
     }
-    return response;
 }
 
-const isVerify = (req, res, next) => {
-    const authorization = req.headers.authorization;
-    if(authorization){
-    const verify = createVerify('SHA256');
-    verify.write('xyz');
-    verify.end();
-    console.log(verify.verify(publicKey, signature, 'hex'));
-    }else{
-        res.send("No Token")
+const decryptData = (token) => {
+    var bytes = cryptoJs.AES.decrypt(token.encryptedData, token.newToken);
+    var decryptedData = JSON.parse(bytes.toString(cryptoJs.enc.Utf8));
+    return {
+        decryptedData
     }
 }
-*/
+
+const verifyToken = [];
+const isVerify = (req, res, next) => {
+    console.log(verifyToken);
+    const secret = req.body.secret;
+    console.log(verifyToken.includes(secret));
+    if (!secret || !verifyToken.includes(secret)) {
+        res.send({
+            message: 'No Token'
+        })
+    } else {
+        var bytes = cryptoJs.AES.decrypt(token.encryptedData, token.newToken);
+        var decryptedData = JSON.parse(bytes.toString(cryptoJs.enc.Utf8));
+        res.send({message: 'decryptedData:', decryptedData});
+        next();
+    }
+}
+
 
 const refreshTokens = [];
+
 
 const generateToken = (user) => {
     return jwt.sign({
@@ -60,7 +57,7 @@ const generateToken = (user) => {
         })
 }
 
-const newToken = (user) => {
+const generateNewToken = (user) => {
     return jwt.sign({
             name: user.name,
             email: user.email
@@ -93,6 +90,8 @@ const isAuth = (req, res, next) => {
 
 userRoute.post('/token', async (req, res) => {
     const refreshToken = req.body.refreshToken;
+    console.log(refreshTokens);
+    console.log(refreshTokens.includes(refreshToken));
     if (!refreshToken || !refreshTokens.includes(refreshToken)) {
         return res.json({
             message: "Refresh token not found, login again"
@@ -132,10 +131,14 @@ userRoute.post('/register', async (req, res) => {
     if (error) {
         res.send(error);
     } else {
-        const user = await User.findOne({email: req.body.email})
-        if(user){
-            return res.send({message: 'Email already exist'})
-        }else{
+        const user = await User.findOne({
+            email: req.body.email
+        })
+        if (user) {
+            return res.send({
+                message: 'Email already exist'
+            })
+        } else {
             const user = await new User({
                 name: req.body.name,
                 email: req.body.email,
@@ -149,7 +152,7 @@ userRoute.post('/register', async (req, res) => {
         }
     }
 })
-
+/*
 //jwt authentication
 userRoute.post('/login', async (req, res) => {
     const validation = joi.object({
@@ -171,7 +174,7 @@ userRoute.post('/login', async (req, res) => {
                     message: 'Login successful',
                     user,
                     token: generateToken(user),
-                    refreshToken: newToken(user),
+                    refreshToken: generateNewToken(user),
                 }
                 res.cookie("token", response, { expire : new Date() + 9999});
                 refreshTokens.push(response.refreshToken);
@@ -188,16 +191,15 @@ userRoute.post('/login', async (req, res) => {
         }
     }
 })
-
-userRoute.get('/logout', async(req, res) => {
-    res.clearCookie("token");  
+*/
+userRoute.get('/logout', async (req, res) => {
+    res.clearCookie("token");
     res.json({
         message: "logout success"
     });
 })
 
 
-/*
 //without jwt
 userRoute.post('/login', async (req, res) => {
     const validation = joi.object({
@@ -219,9 +221,10 @@ userRoute.post('/login', async (req, res) => {
                     message: 'Login successful',
                     user,
                     token: encryptData(user),
-                    refreshToken: crypto.randomBytes(48).toString('hex')
                 }
+                verifyToken.push(response.token.newToken)
                 console.log(response.token)
+                console.log(decryptData(response.token));
                 res.send(response);
             } else {
                 return res.send({
@@ -235,9 +238,9 @@ userRoute.post('/login', async (req, res) => {
         }
     }
 })
-*/
 
-userRoute.post('/profile/:id', isAuth, async (req, res) => {
+
+userRoute.post('/profile/:id', isVerify, async (req, res) => {
     console.log(req.user)
     const user = await User.findById(req.params.id);
     if (user) {
