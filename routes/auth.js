@@ -7,7 +7,6 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const cryptoJs = require('crypto-js');
 
-
 const encryptData = (user) => {
     const newToken = crypto.randomBytes(32).toString('hex');
     const cipherText = cryptoJs.AES.encrypt(JSON.stringify(user), newToken).toString();
@@ -25,7 +24,6 @@ const decryptData = (token) => {
     }
 }
 */
-
 const verifyToken = [];
 const isVerify = (req, res, next) => {
     const secret = req.body.secret;
@@ -34,17 +32,25 @@ const isVerify = (req, res, next) => {
             message: 'No Token'
         })
     } else {
-        var bytes = cryptoJs.AES.decrypt(verifyToken[1], verifyToken[0]);
-        var decryptedData = JSON.parse(bytes.toString(cryptoJs.enc.Utf8));
-        req.user = decryptedData;
-        console.log(req.user);
-        next();
+        const currentTime = Math.floor(new Date() / 1000);
+        console.log(currentTime);
+        const expireTime = currentTime + 200;
+        console.log(expireTime);
+        if (currentTime > expireTime) {
+            return res.send({
+                message: 'Token expire'
+            })
+        } else {
+            var bytes = cryptoJs.AES.decrypt(verifyToken[1], verifyToken[0]);
+            var decryptedData = JSON.parse(bytes.toString(cryptoJs.enc.Utf8));
+            req.user = decryptedData;
+            console.log(req.user);
+            next();
+        }
     }
 }
 
-
 const refreshTokens = [];
-
 
 const generateToken = (user) => {
     return jwt.sign({
