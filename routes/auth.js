@@ -8,11 +8,20 @@ const crypto = require('crypto');
 const cryptoJs = require('crypto-js');
 
 const encryptData = (user) => {
-    const newToken = crypto.randomBytes(32).toString('hex');
-    const cipherText = cryptoJs.AES.encrypt(JSON.stringify(user), newToken).toString();
+    const currentDate = new Date().getTime();
+    const expiryTime = currentDate + 40000;
+    console.log(currentDate, expiryTime);
+    const secret = crypto.randomBytes(32).toString('hex');
+    const updateData = {
+        user,
+        exp: expiryTime
+    }
+    const cipherText = cryptoJs.AES.encrypt(JSON.stringify(updateData), secret).toString();
     return {
         encryptedData: cipherText,
-        newToken
+        secret,
+        iat: currentDate,
+        exp: expiryTime
     }
 }
 /*
@@ -32,24 +41,21 @@ const isVerify = (req, res, next) => {
             message: 'No Token'
         })
     } else {
-        const currentTime = Math.floor(new Date() / 1000);
-        console.log(currentTime);
-        const expireTime = currentTime + 200;
-        console.log(expireTime);
-        if (currentTime > expireTime) {
-            return res.send({
-                message: 'Token expire'
+        const currentTime = new Date().getTime();
+        var bytes = cryptoJs.AES.decrypt(verifyToken[1], verifyToken[0]);
+        var decryptedData = JSON.parse(bytes.toString(cryptoJs.enc.Utf8));
+        console.log(decryptedData);
+        if (currentTime > decryptedData.exp) {
+            res.send({
+                message: 'token expire'
             })
         } else {
-            var bytes = cryptoJs.AES.decrypt(verifyToken[1], verifyToken[0]);
-            var decryptedData = JSON.parse(bytes.toString(cryptoJs.enc.Utf8));
             req.user = decryptedData;
             console.log(req.user);
             next();
         }
     }
 }
-
 const refreshTokens = [];
 
 const generateToken = (user) => {
@@ -227,7 +233,7 @@ userRoute.post('/login', async (req, res) => {
                     user,
                     token: encryptData(user),
                 }
-                verifyToken.push(response.token.newToken, response.token.encryptedData)
+                verifyToken.push(response.token.secret, response.token.encryptedData)
                 //console.log(response.token)
                 //console.log(decryptData(response.token));
                 res.send(response);
@@ -248,7 +254,7 @@ userRoute.post('/login', async (req, res) => {
 userRoute.post('/profile/:id', isVerify, async (req, res) => {
     const user = await User.findById(req.params.id);
     if (user) {
-        res.send(user);
+        res.send({message: 'User details', user});
     } else {
         res.send({
             message: 'User not exist'
