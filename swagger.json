@@ -1,0 +1,512 @@
+{
+    "swaggerDefinition":{
+        "openapi":"3.0.1",
+        "info": {
+            "version": "1.0.0",
+            "title": "Customer API",
+            "description": "Customer API Information",
+            "contact": {
+              "name": "Amazing Developer"
+            }
+        },
+        "servers": [
+            {
+                "url" : "http://localhost:3000",
+                "description": "TestServer"
+            }
+        ],
+        "tags":[{
+            "name": "Customers",
+            "description": "api for customers"
+        }],
+        "schemes":[
+        "http"
+        ],
+        "components":{
+            "securitySchemes":
+                {
+                    "bearerAuth":
+                    {
+                        "type" : "http",
+                        "scheme":"bearer",
+                        "bearerFormat":"JWT",
+                        "in": "header",
+                        "description":"Enter jwt token"
+                    }
+                },
+            "schema": {
+                "User": {
+                    "$ref": "#/definitions/User"
+                }
+            }
+        },
+        "definitions": {
+            "User": {
+                "required": [
+                    "name",
+                    "email",
+                    "password",
+                    "country",
+                    "age"
+                ],
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "description": "user_name",
+                        "example": "Leanne gre"
+                    },
+                    "email": {
+                        "type": "string",
+                        "description": "user_email",
+                        "example": "abc@gmail.com"
+                    },
+                    "password": {
+                        "type": "string",
+                        "description": "user_password",
+                        "example": "abc1234"
+                    },
+                    "country": {
+                        "type": "string",
+                        "description": "user_country",
+                        "example":"india"
+                    },
+                    "age": {
+                        "type": "integer",
+                        "description": "user_age",
+                        "example":10
+                    }
+                }
+            },
+            "Product": {
+                "required": [
+                    "name",
+                    "description",
+                    "category",
+                    "price",
+                    "countInStock"
+                ],
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "description": "product_name"
+                    },
+                    "description": {
+                        "type": "string",
+                        "description": "product_description"
+                    },
+                    "category": {
+                        "type": "string",
+                        "description": "product_category"
+                    },
+                    "price": {
+                        "type": "integer",
+                        "description": "product_price"
+                    },
+                    "countInStock": {
+                        "type": "integer",
+                        "description": "product_countInStock"
+                    }
+                }
+            },
+            "Order": {
+                "required": [
+                    "orderItems",
+                    "shippingAddress",
+                    "itemsPrice",
+                    "totalPrice"
+                ],
+                "properties": {
+                    "orderItems": {
+                        "type": "string",
+                        "description": "product_name"
+                    },
+                    "shippingAddress": {
+                        "type": "string",
+                        "description": "shippingAddress"
+                    },
+                    "itemsPrice": {
+                        "type": "integer",
+                        "description": "order itemsPrice"
+                    },
+                    "totalPrice": {
+                        "type": "integer",
+                        "description": "total amount"
+                    }
+                }
+            }
+        },
+        "paths": {
+            "/api/product/create": {
+                "post": {
+                    "summary":"create product",
+                    "tags": [
+                        "Product"
+                    ],
+                    "description": "create product",
+                    "consumes": [
+                        "application/json"
+                    ],
+                    "requestBody":{
+                        "description": "product body ",
+                        "content": {
+                            "application/json" : {
+                                "schema" : {
+                                    "$ref": "#/definitions/Product"
+                                }
+                            }
+                        }
+                    },
+                    "produces": [
+                        "application/json"
+                    ],
+                    "security":[{
+                        "bearerAuth": []
+                    }],
+                    "responses": {
+                        "201": {
+                            "description": "product created successfully"
+                        },
+                        "401": {
+                            "description": "product  fail"
+                        }
+                    }
+                }
+            },
+            "/api/product/group": {
+                "get": {
+                    "security":[{
+                        "bearerAuth": []
+                    }],
+                    "summary":"pagination",
+                    "tags": [
+                        "Product"
+                    ],
+                    "description": "Group product",
+                    "consumes": [
+                        "application/json"
+                    ],
+                    "parameters": [{
+                        "in":"query",
+                        "name":"start",
+                        "required": true,
+                        "description":"start date"
+                    },
+                    {
+                        "in":"query",
+                        "name":"end",
+                        "required": true,
+                        "description":"end date"
+                    },
+                    {
+                        "in":"query",
+                        "name":"category",
+                        "required": true,
+                        "description":"product category"
+                    }],
+                    "produces": [
+                        "application/json"
+                    ],
+                    "responses": {
+                        "201": {
+                            "description": "product  details"
+                        },
+                        "401": {
+                            "description": "product not found"
+                        }
+                    }
+                }
+            },
+            "/api/product/pagination": {
+                "get": {
+                    "security":[{
+                        "bearerAuth": []
+                    }],
+                    "summary":"group product",
+                    "tags": [
+                        "Product"
+                    ],
+                    "description": "Group product",
+                    "consumes": [
+                        "application/json"
+                    ],
+                    "parameters": [{
+                        "in":"query",
+                        "name":"page",
+                        "required": true,
+                        "description":"page"
+                    },
+                    {
+                        "in":"query",
+                        "name":"limit",
+                        "required": true,
+                        "description":"data limit"
+                    },
+                    {
+                        "in":"query",
+                        "name":"category",
+                        "required": true,
+                        "description":"product category"
+                    }],
+                    "produces": [
+                        "application/json"
+                    ],
+                    "responses": {
+                        "201": {
+                            "description": "product  details"
+                        },
+                        "401": {
+                            "description": "product not found"
+                        }
+                    }
+                }
+            },
+            "/api/product/lookups/product": {
+                "get": {
+                    "security":[{
+                        "bearerAuth": []
+                    }],
+                    "summary":"lookup product",
+                    "tags": [
+                        "Product"
+                    ],
+                    "description": "lookup product",
+                    "consumes": [
+                        "application/json"
+                    ],
+                    "parameters": [{
+                        "in":"query",
+                        "name":"name",
+                        "required": true,
+                        "description":"product name"
+                    }
+                    ],
+                    "produces": [
+                        "application/json"
+                    ],
+                    "responses": {
+                        "201": {
+                            "description": "product  details"
+                        },
+                        "401": {
+                            "description": "product not found"
+                        }
+                    }
+                }
+            },
+            "/api/product/{id}": {
+                "post": {
+                    "summary":"get product by id",
+                    "tags": [
+                        "Product"
+                    ],
+                    "parameters": [{
+                        "in":"path",
+                        "name":"id",
+                        "required": true,
+                        "description":"product_id"
+                    }],
+                    "description": "Get product info",
+                    "consumes": [
+                        "application/json"
+                    ],
+                    "security":[{
+                        "bearerAuth": []
+                    }],
+                    "produces": [
+                        "application/json"
+                    ],
+                    "responses": {
+                        "201": {
+                            "description": "product details "
+                        }
+                    }
+                }
+            },
+            "/api/product/update/{id}": {
+                "put": {
+                    "summary":"update product by",
+                    "tags": [
+                        "Product"
+                    ],
+                    "description": "Update product in system",
+                    "parameters": [{
+                        "in":"path",
+                        "name":"id",
+                        "required": true,
+                        "description":"product_id"
+                    }],
+                    "requestBody":{
+                        "description": "product Update",
+                        "content": {
+                            "application/json" : {
+                                "schema" : {
+                                    "$ref": "#/definitions/Product"
+                                }
+                            }
+                        }
+                    },
+                    "security":[{
+                        "bearerAuth": []
+                    }],
+                    "consumes": [
+                        "application/json"
+                    ],
+                    "produces": [
+                        "application/json"
+                    ],
+                    "responses": {
+                        "201": {
+                            "description": "Product update success"
+                        },
+                        "401": {
+                            "description": "Product update fail"
+                        }
+                    }
+                }
+            },
+            "/api/product/delete/{id}": {
+                "delete": {
+                    "summary":"delete product",
+                    "tags": [
+                        "Product"
+                    ],
+                    "description": "Delete product in system",
+                    "parameters": [{
+                        "in":"path",
+                        "name":"id",
+                        "required": true,
+                        "description":"product_id"
+                    }],
+                    "security":[{
+                        "bearerAuth": []
+                    }],
+                    "consumes": [
+                        "application/json"
+                    ],
+                    "produces": [
+                        "application/json"
+                    ],
+                    "responses": {
+                        "201": {
+                            "description": "Product delete success"
+                        },
+                        "401": {
+                            "description": "Product delete fail"
+                        }
+                    }
+                }
+            },
+            "/api/order/orders": {
+                "post": {
+                    "summary":"orders details",
+                    "tags": [
+                        "Order"
+                    ],
+                    "description": "Get all orders",
+                    "security":[{
+                        "bearerAuth": []
+                    }],
+                    "consumes": [
+                        "application/json"
+                    ],
+                    "produces": [
+                        "application/json"
+                    ],
+                    "responses": {
+                        "201": {
+                            "description": "orders details"
+                        },
+                        "401": {
+                            "description": "order not found"
+                        }
+                    }
+                }
+            },
+            "/api/order/summary": {
+                "post": {
+                    "summary":"orders summary",
+                    "tags": [
+                        "Order"
+                    ],
+                    "description": "orders summary",
+                    "security":[{
+                        "bearerAuth": []
+                    }],
+                    "consumes": [
+                        "application/json"
+                    ],
+                    "produces": [
+                        "application/json"
+                    ],
+                    "responses": {
+                        "201": {
+                            "description": "ordersInfo"
+                        },
+                        "401": {
+                            "description": "order not found"
+                        }
+                    }
+                }
+            },
+            "/api/order/ordersbyproduct": {
+                "get": {
+                    "summary":"orders details",
+                    "tags": [
+                        "Order"
+                    ],
+                    "description": "Get all ordersbyproduct",
+                    "security":[{
+                        "bearerAuth": []
+                    }],
+                    "consumes": [
+                        "application/json"
+                    ],
+                    "produces": [
+                        "application/json"
+                    ],
+                    "responses": {
+                        "201": {
+                            "description": "orders details"
+                        },
+                        "401": {
+                            "description": "order not found"
+                        }
+                    }
+                }
+            },
+            "/api/order/delete/{id}": {
+                "delete": {
+                    "summary":"delete order",
+                    "tags": [
+                        "Order"
+                    ],
+                    "description": "Delete order in system",
+                    "parameters": [{
+                        "in":"path",
+                        "name":"id",
+                        "required": true,
+                        "description":"order_id"
+                    }],
+                    "security":[{
+                        "bearerAuth": []
+                    }],
+                    "consumes": [
+                        "application/json"
+                    ],
+                    "produces": [
+                        "application/json"
+                    ],
+                    "responses": {
+                        "201": {
+                            "description": "Order delete success"
+                        },
+                        "401": {
+                            "description": "Order delete fail"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "apis": ["./routes/*.js"]
+}
